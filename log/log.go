@@ -14,6 +14,7 @@ import (
 // Logger is the fundamental interface for all log operations. Log creates a
 // log event from keyvals, a variadic sequence of alternating keys and values.
 // Implementations must be safe for concurrent use by multiple goroutines.
+//TODO: replace panic as it would result in cyclic errors
 type Logger interface {
 	Debug(keyvals ...interface{})
 	Info(keyvals ...interface{})

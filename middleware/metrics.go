@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hifx/bingo/metrics"
+	"github.com/hifx/bingo/infra/metrics"
 	"github.com/hifx/bingo/middleware/mutil"
 	"goji.io"
 	"goji.io/middleware"
 	"golang.org/x/net/context"
 )
 
-//Key used to store matched patterns in context
+//PATKEY is the key used to store matched patterns in context
 const PATKEY = "metrics.pattern"
 
 /*

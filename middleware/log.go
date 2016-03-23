@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hifx/bingo/infra/log"
 	"github.com/zenazn/goji/web/mutil"
-
-	"github.com/hifx/bingo/log"
 	"goji.io"
 	"golang.org/x/net/context"
 )

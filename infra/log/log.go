@@ -35,8 +35,7 @@ type Logger interface {
 func newLogger(file string, format string) Logger {
 	fw, err := GetFile(file)
 	if err != nil {
-		log.Println("error opening log file")
-		log.Fatal(err)
+		log.Fatal("error opening log file",err)
 	}
 
 	var l log.Logger
@@ -80,34 +79,29 @@ type levels struct {
 
 func (l levels) Debug(keyvals ...interface{}) {
 	if err := l.kit.Debug().Log(keyvals...); err != nil {
-		log.Println("Error while logging(debug):")
-		log.Fatal(err)
+		log.Fatal("Error while logging(debug):",err)
 	}
 }
 
 func (l levels) Info(keyvals ...interface{}) {
 	if err := l.kit.Info().Log(keyvals...); err != nil {
-		log.Println("Error while logging(info):")
-		log.Fatal(err)
+		log.Fatal("Error while logging(info):",err)
 	}
 }
 
 func (l levels) Error(keyvals ...interface{}) {
 	if err := l.kit.Error().Log(keyvals...); err != nil {
-		log.Println("Error while logging(error):")
-		log.Fatal(err)
+		log.Fatal("Error while logging(error):",err)
 	}
 }
 func (l levels) Warn(keyvals ...interface{}) {
 	if err := l.kit.Warn().Log(keyvals...); err != nil {
-		log.Println("Error while logging(warn):")
-		log.Fatal(err)
+		log.Fatal("Error while logging(warn):",err)
 	}
 }
 func (l levels) Crit(keyvals ...interface{}) {
 	if err := l.kit.Crit().Log(keyvals...); err != nil {
-		log.Println("Error while logging(crit):")
-		log.Fatal(err)
+		log.Fatal("Error while logging(crit):",err)
 	}
 }
 

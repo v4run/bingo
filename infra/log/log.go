@@ -25,15 +25,23 @@ type Logger interface {
 	With(keyvals ...interface{}) Logger
 }
 
-// New takes the name of the file as an argument, creates the file and returns
-// a leveled logger that logs to the file
-func New(file string) Logger {
+// newLogger takes the name of the file and format of the logger as an argument, creates the file and returns
+// a leveled logger that logs to the file.
+// @format can have values fmt or json. Default value is fmt.
+func newLogger(file string, format string) Logger {
 	fw, err := GetFile(file)
 	if err != nil {
 		log.Println("error opening log file")
 		log.Fatal(err)
 	}
-	l := gklog.NewLogfmtLogger(fw)
+
+	var l log.Logger
+	if format == "json"{
+		l = gklog.NewJSONLogger(fw)
+	} else {
+		l = gklog.NewLogfmtLogger(fw)
+	}
+
 	kitlevels := gklevels.New(
 		l,
 
@@ -48,6 +56,15 @@ func New(file string) Logger {
 	return levels{kitlevels}
 }
 
+//Return a Json Logger
+func NewJsonLogger(fle string) Logger {
+	return newLogger(fle,"json")
+}
+
+//Return a Fmt Logger
+func NewFmtLogger(fle string) Logger {
+	return newLogger(fle,"fmt")
+}
 //GetFile opens a file in read/write to append data to it
 func GetFile(name string) (*os.File, error) {
 	return os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -58,29 +75,29 @@ type levels struct {
 }
 
 func (l levels) Debug(keyvals ...interface{}) {
-	if err := l.kit.Debug(keyvals...); err != nil {
+	if err := l.kit.Debug().Log(keyvals...); err != nil {
 		panic(err)
 	}
 }
 
 func (l levels) Info(keyvals ...interface{}) {
-	if err := l.kit.Info(keyvals...); err != nil {
+	if err := l.kit.Info().Log(keyvals...); err != nil {
 		panic(err)
 	}
 }
 
 func (l levels) Error(keyvals ...interface{}) {
-	if err := l.kit.Error(keyvals...); err != nil {
+	if err := l.kit.Error().Log(keyvals...); err != nil {
 		panic(err)
 	}
 }
 func (l levels) Warn(keyvals ...interface{}) {
-	if err := l.kit.Warn(keyvals...); err != nil {
+	if err := l.kit.Warn().Log(keyvals...); err != nil {
 		panic(err)
 	}
 }
 func (l levels) Crit(keyvals ...interface{}) {
-	if err := l.kit.Crit(keyvals...); err != nil {
+	if err := l.kit.Crit().Log(keyvals...); err != nil {
 		panic(err)
 	}
 }

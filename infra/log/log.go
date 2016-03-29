@@ -14,7 +14,6 @@ import (
 // Logger provides provides a minimal interface for structured logging
 // It supplies leveled logging functionw which create a log event from keyvals,
 // a variadic sequence of alternating keys and values.
-//TODO: replace panic as it would result in cyclic errors
 type Logger interface {
 	Debug(keyvals ...interface{})
 	Info(keyvals ...interface{})
@@ -76,29 +75,34 @@ type levels struct {
 
 func (l levels) Debug(keyvals ...interface{}) {
 	if err := l.kit.Debug().Log(keyvals...); err != nil {
-		panic(err)
+		log.Println("Error while logging(debug):")
+		log.Fatal(err)
 	}
 }
 
 func (l levels) Info(keyvals ...interface{}) {
 	if err := l.kit.Info().Log(keyvals...); err != nil {
-		panic(err)
+		log.Println("Error while logging(info):")
+		log.Fatal(err)
 	}
 }
 
 func (l levels) Error(keyvals ...interface{}) {
 	if err := l.kit.Error().Log(keyvals...); err != nil {
-		panic(err)
+		log.Println("Error while logging(error):")
+		log.Fatal(err)
 	}
 }
 func (l levels) Warn(keyvals ...interface{}) {
 	if err := l.kit.Warn().Log(keyvals...); err != nil {
-		panic(err)
+		log.Println("Error while logging(warn):")
+		log.Fatal(err)
 	}
 }
 func (l levels) Crit(keyvals ...interface{}) {
 	if err := l.kit.Crit().Log(keyvals...); err != nil {
-		panic(err)
+		log.Println("Error while logging(crit):")
+		log.Fatal(err)
 	}
 }
 

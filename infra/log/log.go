@@ -11,6 +11,11 @@ import (
 	gklevels "github.com/go-kit/kit/log/levels"
 )
 
+const (
+	loggerFormatJSON    = "json"
+	loggerFormatLogFmt  = "logfmt"
+)
+
 // Logger provides provides a minimal interface for structured logging
 // It supplies leveled logging functionw which create a log event from keyvals,
 // a variadic sequence of alternating keys and values.
@@ -26,7 +31,7 @@ type Logger interface {
 
 // newLogger takes the name of the file and format of the logger as an argument, creates the file and returns
 // a leveled logger that logs to the file.
-// @format can have values fmt or json. Default value is fmt.
+// @format can have values logfmt or json. Default value is logfmt.
 func newLogger(file string, format string) Logger {
 	fw, err := GetFile(file)
 	if err != nil {
@@ -35,7 +40,7 @@ func newLogger(file string, format string) Logger {
 	}
 
 	var l log.Logger
-	if format == "json"{
+	if format == loggerFormatJSON{
 		l = gklog.NewJSONLogger(fw)
 	} else {
 		l = gklog.NewLogfmtLogger(fw)
@@ -57,12 +62,12 @@ func newLogger(file string, format string) Logger {
 
 //Return a Json Logger
 func NewJsonLogger(fle string) Logger {
-	return newLogger(fle,"json")
+	return newLogger(fle,loggerFormatJSON)
 }
 
 //Return a Fmt Logger
-func NewFmtLogger(fle string) Logger {
-	return newLogger(fle,"fmt")
+func NewLogfmtLogger(fle string) Logger {
+	return newLogger(fle,loggerFormatLogFmt)
 }
 //GetFile opens a file in read/write to append data to it
 func GetFile(name string) (*os.File, error) {

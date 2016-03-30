@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	loggerFormatJSON    = "json"
-	loggerFormatLogFmt  = "logfmt"
+	loggerFormatJSON   = "json"
+	loggerFormatLogFmt = "logfmt"
 )
 
 // Logger provides provides a minimal interface for structured logging
@@ -35,11 +35,11 @@ type Logger interface {
 func newLogger(file string, format string) Logger {
 	fw, err := GetFile(file)
 	if err != nil {
-		log.Fatal("error opening log file",err)
+		log.Fatal("error opening log file", err)
 	}
 
-	var l log.Logger
-	if format == loggerFormatJSON{
+	var l gklog.Logger
+	if format == loggerFormatJSON {
 		l = gklog.NewJSONLogger(fw)
 	} else {
 		l = gklog.NewLogfmtLogger(fw)
@@ -61,13 +61,14 @@ func newLogger(file string, format string) Logger {
 
 //Return a Json Logger
 func NewJsonLogger(fle string) Logger {
-	return newLogger(fle,loggerFormatJSON)
+	return newLogger(fle, loggerFormatJSON)
 }
 
 //Return a Fmt Logger
 func NewLogfmtLogger(fle string) Logger {
-	return newLogger(fle,loggerFormatLogFmt)
+	return newLogger(fle, loggerFormatLogFmt)
 }
+
 //GetFile opens a file in read/write to append data to it
 func GetFile(name string) (*os.File, error) {
 	return os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -79,29 +80,29 @@ type levels struct {
 
 func (l levels) Debug(keyvals ...interface{}) {
 	if err := l.kit.Debug().Log(keyvals...); err != nil {
-		log.Println("Error while logging(debug):",err)
+		log.Println("Error while logging(debug):", err)
 	}
 }
 
 func (l levels) Info(keyvals ...interface{}) {
 	if err := l.kit.Info().Log(keyvals...); err != nil {
-		log.Println("Error while logging(info):",err)
+		log.Println("Error while logging(info):", err)
 	}
 }
 
 func (l levels) Error(keyvals ...interface{}) {
 	if err := l.kit.Error().Log(keyvals...); err != nil {
-		log.Println("Error while logging(error):",err)
+		log.Println("Error while logging(error):", err)
 	}
 }
 func (l levels) Warn(keyvals ...interface{}) {
 	if err := l.kit.Warn().Log(keyvals...); err != nil {
-		log.Println("Error while logging(warn):",err)
+		log.Println("Error while logging(warn):", err)
 	}
 }
 func (l levels) Crit(keyvals ...interface{}) {
 	if err := l.kit.Crit().Log(keyvals...); err != nil {
-		log.Println("Error while logging(crit):",err)
+		log.Println("Error while logging(crit):", err)
 	}
 }
 

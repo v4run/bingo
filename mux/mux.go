@@ -1,18 +1,25 @@
 /*
-Package mux is wrapper over goji.Mux
+Package mux is a wrapper over goji.Mux
 
-It adds a predefined list of middlewares to muxes and sub-muxes created via the New() and Sub() functions
+It adds a predefined list of middlewares to muxes and sub-muxes that would be created via the New() and Sub() functions
 
-For e.g. to add 404 and metrics/stats handlers to all sub-muxes initialize this package with
+e.g. usage
 
-	mux.InitSub(
+	acslog := log.NewJSONLogger(conf.Log.Access)
+	errlog := log.NewJSONLogger(conf.Log.Err)
+	mux.Init(acslog, errlog)
+
+To set custom middleware like logger, 404, metrics and 404 handlers to all muxes, use
+
+	acslog := log.NewJSONLogger(conf.Log.Access)
+	errlog := log.NewJSONLogger(conf.Log.Err)
+	mux.SetLogs(acslog, errlog)
+
+	mux.SetSubMware(
 			middleware.ApplySubStats,
 			middleware.Apply404)
 
-
-To add logger, 404, metrics and 404 handlers to all muxes, use
-
-	mux.Init(
+	mux.SetMware(
 		middleware.ApplyLog(acsslog),
 		middleware.Apply404,
 		middleware.ApplyStats,
@@ -21,44 +28,144 @@ To add logger, 404, metrics and 404 handlers to all muxes, use
 */
 package mux
 
-import "goji.io"
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/hifx/bingo"
+	"github.com/hifx/bingo/infra/log"
+	"github.com/hifx/bingo/middleware"
+	"goji.io"
+	"goji.io/pat"
+	"golang.org/x/net/context"
+)
 
 var mlist []func(goji.Handler) goji.Handler
 var submlist []func(goji.Handler) goji.Handler
+var acslog, errlog log.Logger
+
+//Mux is a wrapper over Goji's mux
+type Mux struct {
+	*goji.Mux
+}
+
+// Get dispatches to the given handler when the pattern matches and the HTTP
+// method is GET.
+func (m *Mux) Get(pattern string, h func(context.Context, http.ResponseWriter, *http.Request) error) {
+	m.HandleFuncC(pat.Get(pattern), wrap(h))
+}
+
+// Post dispatches to the given handler when the pattern matches and the HTTP
+// method is POST.
+func (m *Mux) Post(pattern string, h func(context.Context, http.ResponseWriter, *http.Request) error) {
+	m.HandleFuncC(pat.Post(pattern), wrap(h))
+}
+
+// Put dispatches to the given handler when the pattern matches and the HTTP
+// method is PUT.
+func (m *Mux) Put(pattern string, h func(context.Context, http.ResponseWriter, *http.Request) error) {
+	m.HandleFuncC(pat.Put(pattern), wrap(h))
+}
+
+// Patch dispatches to the given handler when the pattern matches and the HTTP
+// method is PATCH.
+func (m *Mux) Patch(pattern string, h func(context.Context, http.ResponseWriter, *http.Request) error) {
+	m.HandleFuncC(pat.Patch(pattern), wrap(h))
+}
+
+// Delete dispatches to the given handler when the pattern matches and the HTTP
+// method is DELETE.
+func (m *Mux) Delete(pattern string, h func(context.Context, http.ResponseWriter, *http.Request) error) {
+	m.HandleFuncC(pat.Delete(pattern), wrap(h))
+}
+
+// Options dispatches to the given handler when the pattern matches and the HTTP
+// method is OPTIONS.
+func (m *Mux) Options(pattern string, h func(context.Context, http.ResponseWriter, *http.Request) error) {
+	m.HandleFuncC(pat.Options(pattern), wrap(h))
+}
+
+// Head dispatches to the given handler when the pattern matches and the HTTP
+// method is HEAD.
+func (m *Mux) Head(pattern string, h func(context.Context, http.ResponseWriter, *http.Request) error) {
+	m.HandleFuncC(pat.Head(pattern), wrap(h))
+}
+
+//wrap helps make application handlers  satisfy goji's type HandlerFunc.
+//Any error returned by bingo's app handler's would be logged to the error log
+func wrap(h func(context.Context, http.ResponseWriter, *http.Request) error) func(context.Context, http.ResponseWriter, *http.Request) {
+	fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		err := h(ctx, w, r)
+		if err != nil {
+			switch e := err.(type) {
+			case bingo.HTTPErr:
+				errlog.Error("err", fmt.Sprintf("HTTP %d - %s", e.HTTPStatus, e))
+				http.Error(w, e.Error(), e.HTTPStatus)
+			default:
+				errlog.Error("err", fmt.Sprintf("HTTP 500 - %s", e))
+				http.Error(w, http.StatusText(http.StatusInternalServerError),
+					http.StatusInternalServerError)
+			}
+		}
+	}
+	return fn
+}
 
 /*
 New is a wrapper over goji.NewMux(). It adds
 the pre-defined list of middlewares to the mux
 */
-func New() *goji.Mux {
+func New() *Mux {
 	m := goji.NewMux()
 	for _, mware := range mlist {
 		m.UseC(mware)
 	}
 
-	return m
+	return &Mux{m}
 }
 
 /*
 Sub is a wrapper over goji.SubMux(). It adds
 the pre-defined list of middlewares to the submux
 */
-func Sub() *goji.Mux {
+func Sub() *Mux {
 	m := goji.SubMux()
 	for _, mware := range submlist {
 		m.UseC(mware)
 	}
-	return m
+	return &Mux{m}
 }
 
-// Init sets the middlewares to be used for all muxes
+// SetMware sets the middlewares to be used for all muxes
 // Init is not intended to be used concurrently from multiple goroutines
-func Init(m ...func(goji.Handler) goji.Handler) {
+func SetMware(m ...func(goji.Handler) goji.Handler) {
 	mlist = m
 }
 
-// InitSub sets the middlewares to be used for all sub-muxes
+// SetSubMware sets the middlewares to be used for all sub-muxes
 // InitSub is not intended to be used concurrently from multiple goroutines
-func InitSub(m ...func(goji.Handler) goji.Handler) {
+func SetSubMware(m ...func(goji.Handler) goji.Handler) {
 	submlist = m
+}
+
+//Init initializes the mux package. It initializes the middlewares to be used by Muxes & SubMuxes
+//and sets the loggers. An application can overwrite the middlewares by calling SetMware & SetSubMware
+func Init(acslog, errlog log.Logger) {
+	SetMware(
+		middleware.ApplyLog(acslog),
+		middleware.Apply404,
+		middleware.ApplyStats,
+		middleware.ApplyReqID,
+	)
+	SetSubMware(
+		middleware.ApplySubStats,
+		middleware.Apply404,
+	)
+	SetLogs(acslog, errlog)
+}
+
+//SetLogs sets the loggers used by the mux package
+func SetLogs(a, e log.Logger) {
+	acslog = a
+	errlog = e
 }

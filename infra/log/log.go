@@ -59,12 +59,12 @@ func newLogger(file string, format string) Logger {
 	return levels{kitlevels}
 }
 
-//Return a Json Logger
-func NewJsonLogger(fle string) Logger {
+//NewJSONLogger returns a Json Logger
+func NewJSONLogger(fle string) Logger {
 	return newLogger(fle, loggerFormatJSON)
 }
 
-//Return a Fmt Logger
+//NewLogfmtLogger returns a LogfmtLogger Logger
 func NewLogfmtLogger(fle string) Logger {
 	return newLogger(fle, loggerFormatLogFmt)
 }

@@ -4,7 +4,7 @@ Package redis provides the library to communicate to redis
 package redis
 
 import (
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -13,8 +13,8 @@ import (
 var IDLE_TIMEOUT = 240 * time.Second
 
 // Connect initializes the redis connection pool
-func Connect(host string, maxactive, maxidle int) *redis.Pool {
-	pool := redis.Pool{
+func Connect(host string, maxactive, maxidle int) (*redis.Pool, error) {
+	pool := &redis.Pool{
 		MaxIdle:     maxidle,
 		MaxActive:   maxactive,
 		IdleTimeout: IDLE_TIMEOUT,
@@ -30,16 +30,12 @@ func Connect(host string, maxactive, maxidle int) *redis.Pool {
 			return err
 		},
 	}
-	c := pool.Get()
-	if _, err := c.Do("PING"); err != nil {
-		log.Fatal("unable to connect to redis: ", host, " err: ", err)
-	}
-	return &pool
+	return check(host, pool)
 }
 
 //AuthConnect connects and authenticated with the password
-func AuthConnect(host string, password string, maxactive, maxidle int) *redis.Pool {
-	pool := redis.Pool{
+func AuthConnect(host string, password string, maxactive, maxidle int) (*redis.Pool, error) {
+	pool := &redis.Pool{
 		MaxIdle:     maxidle,
 		MaxActive:   maxactive,
 		IdleTimeout: IDLE_TIMEOUT,
@@ -59,9 +55,13 @@ func AuthConnect(host string, password string, maxactive, maxidle int) *redis.Po
 			return err
 		},
 	}
+	return check(host, pool)
+}
+
+func check(host string, pool *redis.Pool) (*redis.Pool, error) {
 	c := pool.Get()
 	if _, err := c.Do("PING"); err != nil {
-		log.Fatal("unable to connect to redis: ", host, " err: ", err)
+		return nil, fmt.Errorf("unable to connect to redis: %s err: %s", host, err)
 	}
-	return &pool
+	return pool, nil
 }

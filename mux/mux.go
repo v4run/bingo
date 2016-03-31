@@ -93,6 +93,7 @@ func (m *Mux) Head(pattern string, h func(context.Context, http.ResponseWriter, 
 
 //wrap helps make application handlers  satisfy goji's type HandlerFunc.
 //Any error returned by bingo's app handler's would be logged to the error log
+//TODO: Log "req_id", "method", "uri", "remote", "err", "stack"
 func wrap(h func(context.Context, http.ResponseWriter, *http.Request) error) func(context.Context, http.ResponseWriter, *http.Request) {
 	fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		err := h(ctx, w, r)

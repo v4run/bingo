@@ -4,9 +4,12 @@ import (
 	"net/http"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/fatih/color"
 	"github.com/hifx/banner"
 	"github.com/hifx/graceful"
+	"goji.io/pat"
 )
 
 //PrintName prints the app name
@@ -30,6 +33,13 @@ func PrintError(a ...interface{}) {
 	hd.Println("----------------------------------")
 }
 
+//Run gracefully starts the http server
 func Run(addr string, timeout time.Duration, h http.Handler) {
-	graceful.Run(addr, timeout, h)
+	http.Handle("/", h)
+	graceful.Run(addr, timeout, http.DefaultServeMux)
+}
+
+//BoundParam returns the bound parameter with the given name. Wraps around goji's pat.Param
+func BoundParam(ctx context.Context, name string) string {
+	return pat.Param(ctx, name)
 }

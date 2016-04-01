@@ -29,7 +29,6 @@ To set custom middleware like logger, 404, metrics and 404 handlers to all muxes
 package mux
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/hifx/bingo"
@@ -98,14 +97,27 @@ func wrap(h func(context.Context, http.ResponseWriter, *http.Request) error) fun
 	fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		err := h(ctx, w, r)
 		if err != nil {
+			reqid := middleware.GetReqID(ctx)
 			switch e := err.(type) {
 			case bingo.HTTPErr:
-				errlog.Error("err", fmt.Sprintf("HTTP %d - %s", e.HTTPStatus, e))
-				http.Error(w, e.Error(), e.HTTPStatus)
+				errlog.Error(
+					"req_id", reqid,
+					"uri", r.RequestURI,
+					"method", r.Method,
+					"remote", r.RemoteAddr,
+					"error", err.Error(),
+					"stack", err.(bingo.HTTPErr).Stack(),
+				)
+				http.Error(w, http.StatusText(e.HTTPStatus), e.HTTPStatus)
 			default:
-				errlog.Error("err", fmt.Sprintf("HTTP 500 - %s", e))
-				http.Error(w, http.StatusText(http.StatusInternalServerError),
-					http.StatusInternalServerError)
+				errlog.Error(
+					"req_id", reqid,
+					"uri", r.RequestURI,
+					"method", r.Method,
+					"remote", r.RemoteAddr,
+					"error", err.Error(),
+				)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}
 		}
 	}
@@ -153,10 +165,10 @@ func SetSubMware(m ...func(goji.Handler) goji.Handler) {
 //and sets the loggers. An application can overwrite the middlewares by calling SetMware & SetSubMware
 func Init(acslog, errlog log.Logger) {
 	SetMware(
+		middleware.ApplyReqID,
 		middleware.ApplyLog(acslog),
 		middleware.Apply404,
 		middleware.ApplyStats,
-		middleware.ApplyReqID,
 	)
 	SetSubMware(
 		middleware.ApplySubStats,

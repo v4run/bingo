@@ -22,8 +22,9 @@ func (h *Handler) Close() error {
 }
 
 // AddCloser adds a closer
-func (h *Handler) AddCloser(c io.Closer) {
+func (h *Handler) AddCloser(c io.Closer) *Handler {
 	h.closers = append(h.closers, c)
+	return h
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

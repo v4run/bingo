@@ -29,6 +29,7 @@ To set custom middleware like logger, 404, metrics and 404 handlers to all muxes
 package mux
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/hifx/bingo"
@@ -99,16 +100,17 @@ func wrap(h func(context.Context, http.ResponseWriter, *http.Request) error) fun
 		if err != nil {
 			reqid := middleware.GetReqID(ctx)
 			switch e := err.(type) {
-			case bingo.HTTPErr:
+			case *bingo.Err:
+				fmt.Println("-----", e.Code)
 				errlog.Error(
 					"req_id", reqid,
 					"uri", r.RequestURI,
 					"method", r.Method,
 					"remote", r.RemoteAddr,
 					"error", err.Error(),
-					"stack", err.(bingo.HTTPErr).Stack(),
+					"stack", err.(*bingo.Err).Stack(),
 				)
-				http.Error(w, http.StatusText(e.HTTPStatus), e.HTTPStatus)
+				http.Error(w, http.StatusText(e.Code), e.Code)
 			default:
 				errlog.Error(
 					"req_id", reqid,

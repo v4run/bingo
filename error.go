@@ -8,6 +8,7 @@ import (
 )
 
 // HTTPErr represents an error that occured while handling a request.
+// swagger:response error
 type HTTPErr struct {
 	Message    string
 	HTTPStatus int

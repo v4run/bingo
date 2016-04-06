@@ -7,12 +7,20 @@ import (
 	"github.com/facebookgo/stack"
 )
 
-// Err represents an error that occured while handling a request.
+<<<<<<< HEAD
+// HTTPErr represents an error that occured while handling a request.
 // swagger:response error
+type HTTPErr struct {
+	Message    string
+	HTTPStatus int
+	Strace     string
+=======
+// Err represents an error that occured while handling a request.
 type Err struct {
 	Message string
 	Code    int
 	Strace  string
+>>>>>>> dccbf162de28aacde9763ff5ca665ed0dcf6ef39
 }
 
 //Error returns the error string

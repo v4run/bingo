@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// No, any resemblance to writer_proxy.php from https://github.com/zenazn/goji is not accidental :)
+// No, any resemblance to writer_proxy.go from https://github.com/zenazn/goji is not accidental :)
 
 // WriterProxy is a proxy around an http.ResponseWriter that allows you to hook
 // into various parts of the response process.

@@ -1,45 +1,47 @@
 package bingo
 
-import (
-	"net/http"
-	"strings"
+import "github.com/hifx/errgo"
 
-	"github.com/facebookgo/stack"
-)
+import "strings"
 
 // Err represents an error that occured while handling a request.
 type Err struct {
-	Message string
-	Code    int
-	Strace  string
-}
-
-//Error returns the error string
-func (e Err) Error() string {
-	return e.Message
-}
-
-//ErrCode returns the http status code
-func (e Err) ErrCode() int {
-	return e.Code
+	errgo.Err
+	stack string
 }
 
 //Stack returns the error stack
 func (e Err) Stack() string {
-	return e.Strace
+	return e.stack
 }
 
 // NewErr returns an app Error Instance
 func NewErr(message string, code int) Err {
-	s := stack.Callers(1).String()
-	s = s[0:strings.Index(s, "\n")]
-	return Err{Message: message, Code: code, Strace: s}
+	err := Err{Err: errgo.NewErr(message)}
+	err.SetCode(code)
+	err.SetLocation(1)
+	err.stack = strings.Join(err.StackTrace(), ";")
+	return err
+}
+
+// NewErrWithCause returns an app Error Instance caused by other error.
+func NewErrWithCause(other error, code int, format string, args ...interface{}) Err {
+	err := Err{Err: errgo.NewErrWithCause(other, format, args...)}
+	err.SetCode(code)
+	err.SetLocation(1)
+	err.stack = strings.Join(err.StackTrace(), ";")
+	return err
 }
 
 var (
-	ErrInternalServer    = &Err{Message: "Internal server error", Code: http.StatusInternalServerError}
-	ErrNotFound          = &Err{Message: "Requested content not found", Code: http.StatusNotFound}
-	ErrInvalidParameters = &Err{Message: "Invalid request parameters", Code: http.StatusBadRequest}
-	ErrUnauthorized      = &Err{Message: "Unauthorized request", Code: http.StatusUnauthorized}
-	ErrMethodNotAllowed  = &Err{Message: "Method not allowed for the request", Code: http.StatusMethodNotAllowed}
+	// ErrInternalServer represents an internal server error.
+	ErrInternalServer = errgo.InternalServerf("Internal server error")
+	// ErrNotFound represents not found error.
+	ErrNotFound = errgo.NotFoundf("Requested content not found")
+	// ErrInvalidParameters represents invalid parameters error.
+	ErrInvalidParameters = errgo.BadRequestf("Invalid request parameters")
+	// ErrUnauthorized represents unauthorized error.
+	ErrUnauthorized = errgo.Unauthorizedf("Unauthorized request")
+	// ErrMethodNotAllowed represents method not allowed error.
+	ErrMethodNotAllowed = errgo.MethodNotAllowedf("Method not allowed for the request")
 )

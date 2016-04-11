@@ -17,7 +17,7 @@ const (
 )
 
 // Logger provides provides a minimal interface for structured logging
-// It supplies leveled logging functionw which create a log event from keyvals,
+// It supplies leveled logging function which create a log event from keyvals,
 // a variadic sequence of alternating keys and values.
 type Logger interface {
 	Debug(keyvals ...interface{})

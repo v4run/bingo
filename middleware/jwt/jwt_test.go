@@ -2,16 +2,13 @@ package jwt
 
 import (
 	"net/http"
-	"testing"
-
-	"golang.org/x/net/context"
-
 	"net/http/httptest"
-
 	"strings"
+	"testing"
 
 	"github.com/hifx/bingo/mux"
 	"goji.io"
+	"golang.org/x/net/context"
 )
 
 type keyPair struct {

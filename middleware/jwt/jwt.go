@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -9,15 +10,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-
-	"gopkg.in/square/go-jose.v1"
-
-	"encoding/json"
-
 	"time"
 
 	"goji.io"
 	"golang.org/x/net/context"
+	"gopkg.in/square/go-jose.v1"
 )
 
 // Claims represents the claims for sso token

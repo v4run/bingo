@@ -31,9 +31,9 @@ package mux
 import (
 	"net/http"
 
-	"github.com/hifx/bingo"
 	"github.com/hifx/bingo/infra/log"
 	"github.com/hifx/bingo/middleware"
+	"github.com/hifx/errgo"
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/net/context"
@@ -99,7 +99,7 @@ func wrap(h func(context.Context, http.ResponseWriter, *http.Request) error) fun
 		if err != nil {
 			reqid := middleware.GetReqID(ctx)
 			switch e := err.(type) {
-			case *bingo.Err:
+			case *errgo.Err:
 				errlog.Error(
 					"req_id", reqid,
 					"uri", r.RequestURI,

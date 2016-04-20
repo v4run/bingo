@@ -14,7 +14,7 @@ import (
 type keyPair struct {
 	public     string
 	private    string
-	passPhrase string
+	passPhrase []byte
 }
 
 var (
@@ -60,7 +60,7 @@ uisSGv0lJZTFCVJk2gGXG9ILKmv/GTRxToENRVk0NbmH5x1rwWZjt2FKpvgPKZDq
 SQIDAQAB
 -----END PUBLIC KEY-----
 `,
-		passPhrase: `testpass`,
+		passPhrase: []byte("testpass"),
 	}
 	key = keyPair{
 		private: `-----BEGIN RSA PRIVATE KEY-----
@@ -196,27 +196,43 @@ var testCasesNoPassKey = map[string]TestCase{
 }
 
 func TestInit(t *testing.T) {
-	err := Init(nil, nil, "")
-	if err == nil {
-		t.Error("Error: Expected:", ErrPrivateKey, "Got:", err)
-	}
-	err = Init(strings.NewReader(""), nil, "")
+	parseFromRequest = nil
+	err := Init(nil, nil, []byte(""))
 	if err == nil {
 		t.Error("Error: Expected:", ErrPublicKey, "Got:", err)
 	}
-	err = Init(strings.NewReader(""), strings.NewReader(""), "")
+	parseFromRequest = nil
+	err = Init(strings.NewReader(""), nil, []byte(""))
+	if err == nil {
+		t.Error("Error: Expected:", ErrPublicKey, "Got:", err)
+	}
+	parseFromRequest = nil
+	err = Init(nil, strings.NewReader(""), []byte(""))
+	if err == nil {
+		t.Error("Error: Expected:", ErrPublicKey, "Got:", err)
+	}
+	parseFromRequest = nil
+	err = Init(strings.NewReader(""), strings.NewReader(""), []byte(""))
 	if err == nil {
 		t.Error("Error: Expected: non-nil error Got:", err)
 	}
-	err = Init(strings.NewReader(keyP.private), strings.NewReader(keyP.public), keyP.passPhrase)
+	parseFromRequest = nil
+	err = Init(strings.NewReader(keyP.public), strings.NewReader(keyP.private), keyP.passPhrase)
 	if err != nil {
 		t.Error("Error: Expected:", nil, "Got:", err)
 	}
-	err = Init(strings.NewReader(keyP.private), strings.NewReader(keyP.public), "")
+	parseFromRequest = nil
+	err = Init(strings.NewReader(keyP.public), strings.NewReader(keyP.private), nil)
 	if err == nil {
 		t.Error("Error: Expected: non-nil error Got:", err)
 	}
-	err = Init(strings.NewReader(key.private), strings.NewReader(key.public), key.passPhrase)
+	parseFromRequest = nil
+	err = Init(strings.NewReader(keyP.public), strings.NewReader(keyP.private), []byte(""))
+	if err == nil {
+		t.Error("Error: Expected: non-nil error Got:", err)
+	}
+	parseFromRequest = nil
+	err = Init(strings.NewReader(key.public), strings.NewReader(key.private), key.passPhrase)
 	if err != nil {
 		t.Error("Error: Expected:", nil, "Got:", err)
 	}
@@ -245,10 +261,12 @@ func TestValidate(t *testing.T) {
 			)
 		}
 	}
-	Init(strings.NewReader(keyP.private), strings.NewReader(keyP.public), keyP.passPhrase)
+	parseFromRequest = nil
+	Init(strings.NewReader(keyP.public), strings.NewReader(keyP.private), keyP.passPhrase)
 	tokenTest(commonTestCases)
 	tokenTest(testCasesPassProtectedKey)
-	Init(strings.NewReader(key.private), strings.NewReader(key.public), key.passPhrase)
+	parseFromRequest = nil
+	Init(strings.NewReader(key.public), strings.NewReader(key.private), key.passPhrase)
 	tokenTest(commonTestCases)
 	tokenTest(testCasesNoPassKey)
 }
@@ -283,10 +301,12 @@ func TestMustValidate(t *testing.T) {
 			)
 		}
 	}
-	Init(strings.NewReader(keyP.private), strings.NewReader(keyP.public), keyP.passPhrase)
+	parseFromRequest = nil
+	Init(strings.NewReader(keyP.public), strings.NewReader(keyP.private), keyP.passPhrase)
 	tokenTest(commonTestCases)
 	tokenTest(testCasesPassProtectedKey)
-	Init(strings.NewReader(key.private), strings.NewReader(key.public), key.passPhrase)
+	parseFromRequest = nil
+	Init(strings.NewReader(key.public), strings.NewReader(key.private), key.passPhrase)
 	tokenTest(commonTestCases)
 	tokenTest(testCasesNoPassKey)
 }

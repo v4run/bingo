@@ -91,8 +91,8 @@ var (
 // parseFromRequest parses the request and gets the id token from header.
 var parseFromRequest func(req *http.Request) (string, tokenType)
 
-// Init initialises the jwt middlewares with privKeyFile, pubKeyFile and keyPass
-func Init(pubKeyFile, privKeyFile io.Reader, keyPass string) error {
+// Init initialises the jwt middlewares with pubKeyFile, privKeyFile and keyPass
+func Init(pubKeyFile, privKeyFile io.Reader, keyPass []byte) error {
 
 	if parseFromRequest != nil {
 		return nil
@@ -137,9 +137,9 @@ func Init(pubKeyFile, privKeyFile io.Reader, keyPass string) error {
 			return err
 		}
 
-		if keyPass != "" {
+		if keyPass != nil {
 			block, _ := pem.Decode(key)
-			key, err = x509.DecryptPEMBlock(block, []byte(keyPass))
+			key, err = x509.DecryptPEMBlock(block, keyPass)
 			if err != nil {
 				return err
 			}

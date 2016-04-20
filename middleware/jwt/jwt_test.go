@@ -195,12 +195,16 @@ var testCasesNoPassKey = map[string]TestCase{
 	}},
 }
 
-func TestInit(t *testing.T) {
+func TesstInit(t *testing.T) {
 	err := Init(nil, nil, "")
 	if err == nil {
-		t.Error("Error: Expected:", ErrPrivateKey, "Got:", err)
+		t.Error("Error: Expected:", ErrPublicKey, "Got:", err)
 	}
 	err = Init(strings.NewReader(""), nil, "")
+	if err == nil {
+		t.Error("Error: Expected:", ErrPublicKey, "Got:", err)
+	}
+	err = Init(nil, strings.NewReader(""), "")
 	if err == nil {
 		t.Error("Error: Expected:", ErrPublicKey, "Got:", err)
 	}
@@ -208,15 +212,15 @@ func TestInit(t *testing.T) {
 	if err == nil {
 		t.Error("Error: Expected: non-nil error Got:", err)
 	}
-	err = Init(strings.NewReader(keyP.private), strings.NewReader(keyP.public), keyP.passPhrase)
+	err = Init(strings.NewReader(keyP.public), strings.NewReader(keyP.private), keyP.passPhrase)
 	if err != nil {
 		t.Error("Error: Expected:", nil, "Got:", err)
 	}
-	err = Init(strings.NewReader(keyP.private), strings.NewReader(keyP.public), "")
-	if err == nil {
-		t.Error("Error: Expected: non-nil error Got:", err)
-	}
-	err = Init(strings.NewReader(key.private), strings.NewReader(key.public), key.passPhrase)
+	// err = Init(strings.NewReader(keyP.public), strings.NewReader(keyP.private), "fsdf")
+	// if err == nil {
+	// 	t.Error("Error: Expected: non-nil error Got:", err)
+	// }
+	err = Init(strings.NewReader(key.public), strings.NewReader(key.private), key.passPhrase)
 	if err != nil {
 		t.Error("Error: Expected:", nil, "Got:", err)
 	}
@@ -245,10 +249,10 @@ func TestValidate(t *testing.T) {
 			)
 		}
 	}
-	Init(strings.NewReader(keyP.private), strings.NewReader(keyP.public), keyP.passPhrase)
+	Init(strings.NewReader(keyP.public), strings.NewReader(keyP.private), keyP.passPhrase)
 	tokenTest(commonTestCases)
 	tokenTest(testCasesPassProtectedKey)
-	Init(strings.NewReader(key.private), strings.NewReader(key.public), key.passPhrase)
+	Init(strings.NewReader(key.public), strings.NewReader(key.private), key.passPhrase)
 	tokenTest(commonTestCases)
 	tokenTest(testCasesNoPassKey)
 }
@@ -283,10 +287,10 @@ func TestMustValidate(t *testing.T) {
 			)
 		}
 	}
-	Init(strings.NewReader(keyP.private), strings.NewReader(keyP.public), keyP.passPhrase)
+	Init(strings.NewReader(keyP.public), strings.NewReader(keyP.private), keyP.passPhrase)
 	tokenTest(commonTestCases)
 	tokenTest(testCasesPassProtectedKey)
-	Init(strings.NewReader(key.private), strings.NewReader(key.public), key.passPhrase)
+	Init(strings.NewReader(key.public), strings.NewReader(key.private), key.passPhrase)
 	tokenTest(commonTestCases)
 	tokenTest(testCasesNoPassKey)
 }

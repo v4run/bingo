@@ -1079,9 +1079,7 @@ func (rs *RetryStmt) Get(dest interface{}, args ...interface{}) error {
 	return rs.Stmt.Get(dest, args...)
 }
 
-
-
-func (rs *RetryStmt) Exec(arg ...interface{}) (sql.Result, error) {
+func (rs *RetryStmt) Exec(arg interface{}) (sql.Result, error) {
 
 	if rs == nil {
 		//This function can be execute even s object is nil.
@@ -1091,7 +1089,7 @@ func (rs *RetryStmt) Exec(arg ...interface{}) (sql.Result, error) {
 	var lastErr error
 	var retryErrorChanel chan error = make(chan error, 1)
 	var retryResultChanel chan sql.Result = make(chan sql.Result, 1)
-	go func(s *RetryNamedStmt, rrch chan sql.Result, rech chan error, lastErr *error) {
+	go func(s *RetryStmt, rrch chan sql.Result, rech chan error, lastErr *error) {
 
 		for iRetry := 0; iRetry < (*s).retryTimes; iRetry++ {
 
@@ -1104,9 +1102,9 @@ func (rs *RetryStmt) Exec(arg ...interface{}) (sql.Result, error) {
 			var queryErrorChanel chan *error = make(chan *error, 1)
 			var r sql.Result
 
-			go func(s *RetryNamedStmt, qrch chan sql.Result, qech chan *error) {
+			go func(s *RetryStmt, qrch chan sql.Result, qech chan *error) {
 				//Calling sqlx library function
-				r, qErr := s.Stmt.Exec(arg...)
+				r, qErr := s.Stmt.Exec(arg)
 				if qErr != nil {
 					qech <- &qErr
 				} else {
@@ -1123,8 +1121,8 @@ func (rs *RetryStmt) Exec(arg ...interface{}) (sql.Result, error) {
 			//error in query execution
 			//go for next iteration
 			case <-time.After(s.queryTimeout):
-			//maximum time allowed for executing query is up.
-			//Go for the next retry is retryTimes is greater than attempt count.
+				//maximum time allowed for executing query is up.
+				//Go for the next retry is retryTimes is greater than attempt count.
 				tmpEr := errgo.New("Query time out error")
 				lastErr = &tmpEr
 			}

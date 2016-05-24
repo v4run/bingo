@@ -16,6 +16,10 @@ func Apply404(h goji.Handler) goji.Handler {
 	return goji.HandlerFunc(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		handler := middleware.Handler(ctx)
 		if handler == nil {
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(200)
+				return
+			}
 			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 			w.WriteHeader(404)

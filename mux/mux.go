@@ -165,6 +165,7 @@ func SetSubMware(m ...func(goji.Handler) goji.Handler) {
 //and sets the loggers. An application can overwrite the middlewares by calling SetMware & SetSubMware
 func Init(acslog, errlog log.Logger) {
 	SetMware(
+		middleware.CrossDomainRequestAllower,
 		middleware.ApplyReqID,
 		middleware.ApplyLog(acslog),
 		middleware.Apply404,

@@ -34,13 +34,13 @@ func Connect(host string, maxactive, maxidle int) (*redis.Pool, error) {
 }
 
 //AuthConnect connects and authenticated with the password
-func AuthConnect(host string, password string, maxactive, maxidle int) (*redis.Pool, error) {
+func AuthConnect(host string, password string, maxactive, maxidle int, options ...redis.DialOption) (*redis.Pool, error) {
 	pool := &redis.Pool{
 		MaxIdle:     maxidle,
 		MaxActive:   maxactive,
 		IdleTimeout: IDLE_TIMEOUT,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", host)
+			c, err := redis.Dial("tcp", host, options...)
 			if err != nil {
 				return nil, err
 			}

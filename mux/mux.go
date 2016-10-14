@@ -150,13 +150,11 @@ func Sub() *Mux {
 }
 
 // SetMware sets the middlewares to be used for all muxes
-// Init is not intended to be used concurrently from multiple goroutines
 func SetMware(m ...func(goji.Handler) goji.Handler) {
 	mlist = m
 }
 
 // SetSubMware sets the middlewares to be used for all sub-muxes
-// InitSub is not intended to be used concurrently from multiple goroutines
 func SetSubMware(m ...func(goji.Handler) goji.Handler) {
 	submlist = m
 }
@@ -167,6 +165,7 @@ func Init(acslog, errlog log.Logger) {
 	SetMware(
 		middleware.CrossDomainRequestAllower,
 		middleware.ApplyReqID,
+		middleware.ApplyRecoverer(errlog),
 		middleware.ApplyLog(acslog),
 		middleware.Apply404,
 		middleware.ApplyStats,

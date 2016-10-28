@@ -1,19 +1,16 @@
-/*
-Package aws_sns provides the library to communicate to sns service
-*/
-package aws_sdk_go
+package aws
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-func ConfigAws(regionName, accessKey, secretKey string, doIam bool) (*aws.Config, error) {
-	sess:= session.New()
+// Config creates a new AWS configuration for initializing new services
+func Config(regionName, accessKey, secretKey string) (*aws.Config, error) {
+	sess := session.New()
 	awsConfig := aws.NewConfig().WithCredentials(credentials.NewChainCredentials([]credentials.Provider{
 		&ec2rolecreds.EC2RoleProvider{
 			Client: ec2metadata.New(sess),
@@ -26,11 +23,5 @@ func ConfigAws(regionName, accessKey, secretKey string, doIam bool) (*aws.Config
 			},
 		},
 	})).WithRegion(regionName)
-	return awsConfig,nil
-}
-
-func ConnectSns(config *aws.Config) (*sns.SNS, error) {
-	awsSession := session.New(config)
-	snsService := sns.New(awsSession)
-	return snsService,nil
+	return awsConfig, nil
 }

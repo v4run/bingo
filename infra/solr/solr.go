@@ -6,7 +6,7 @@ package solr
 import (
 	"fmt"
 
-	"github.com/vanng822/go-solr/solr"
+	"github.com/hifx/go-solr/solr"
 )
 
 // Connect initializes the solr connection object

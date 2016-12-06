@@ -29,12 +29,11 @@ To set custom middleware like logger, 404, metrics and 404 handlers to all muxes
 package mux
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/hifx/bingo"
 	"github.com/hifx/bingo/infra/log"
 	"github.com/hifx/bingo/middleware"
+	"github.com/hifx/errgo"
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/net/context"
@@ -100,17 +99,16 @@ func wrap(h func(context.Context, http.ResponseWriter, *http.Request) error) fun
 		if err != nil {
 			reqid := middleware.GetReqID(ctx)
 			switch e := err.(type) {
-			case *bingo.Err:
-				fmt.Println("-----", e.Code)
+			case *errgo.Err:
 				errlog.Error(
 					"req_id", reqid,
 					"uri", r.RequestURI,
 					"method", r.Method,
 					"remote", r.RemoteAddr,
-					"error", err.Error(),
-					"stack", err.(*bingo.Err).Stack(),
+					"error", e.Error(),
+					"stack", e.Stack(),
 				)
-				http.Error(w, http.StatusText(e.Code), e.Code)
+				http.Error(w, http.StatusText(e.Code()), e.Code())
 			default:
 				errlog.Error(
 					"req_id", reqid,
@@ -152,13 +150,11 @@ func Sub() *Mux {
 }
 
 // SetMware sets the middlewares to be used for all muxes
-// Init is not intended to be used concurrently from multiple goroutines
 func SetMware(m ...func(goji.Handler) goji.Handler) {
 	mlist = m
 }
 
 // SetSubMware sets the middlewares to be used for all sub-muxes
-// InitSub is not intended to be used concurrently from multiple goroutines
 func SetSubMware(m ...func(goji.Handler) goji.Handler) {
 	submlist = m
 }
@@ -167,7 +163,9 @@ func SetSubMware(m ...func(goji.Handler) goji.Handler) {
 //and sets the loggers. An application can overwrite the middlewares by calling SetMware & SetSubMware
 func Init(acslog, errlog log.Logger) {
 	SetMware(
+		middleware.CrossDomainRequestAllower,
 		middleware.ApplyReqID,
+		middleware.ApplyRecoverer(errlog),
 		middleware.ApplyLog(acslog),
 		middleware.Apply404,
 		middleware.ApplyStats,
